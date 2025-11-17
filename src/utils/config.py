@@ -11,6 +11,11 @@ class Config:
         self.narrator_model: str = "gemini:gemini-2.5-flash"
         self.detective_model: str = "gemini:gemini-2.5-flash"
         self.difficulty: str = "media"
+        self.question_limits: Dict[str, int] = {
+            "facil": 20,
+            "media": 10,
+            "dificil": 5,
+        }
         self.gemini_api_key: str | None = None
         self.ollama_api_url: str = "http://localhost:11434"
         self._load_env_vars()
@@ -82,6 +87,7 @@ class Config:
             "narrator_model": self.narrator_model,
             "detective_model": self.detective_model,
             "difficulty": self.difficulty,
+            "question_limits": self.question_limits,
             "gemini_api_key": self.gemini_api_key,
             "ollama_api_url": self.ollama_api_url,
         }

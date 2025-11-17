@@ -73,12 +73,7 @@ class GameEngine:
 
         detective_ready_to_solve = False
         
-        question_limits = {
-            "facil": 20,
-            "media": 10,
-            "dificil": 5
-        }
-        max_questions = question_limits.get(self.game_state.difficulty, 10) # Default to 10 if difficulty not found
+        max_questions = self.config["question_limits"].get(self.game_state.difficulty, 10) # Default to 10 if difficulty not found
 
         while not self.game_state.detective_solved:
             current_questions = len(self.game_state.qa_history)
