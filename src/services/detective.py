@@ -37,6 +37,7 @@ class Detective:
 
         Mantén un tono profesional como un investigador experimentado.
         Puedes hacer preguntas al Narrador, quien solo responderá "sí", "no" o "no es relevante".
+        Asegúrate de que tus preguntas estén formuladas de tal manera que la respuesta pueda ser un simple "sí", "no" o "no es relevante".
         Cuando creas que tienes la solución, indica explícitamente que estás listo para resolver
         usando frases como "Creo que ya lo tengo", "Voy a resolver", "Tengo la solución", etc.
         Después de indicar que estás listo, tu siguiente turno será para dar la solución final.

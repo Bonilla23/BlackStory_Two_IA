@@ -1,4 +1,6 @@
 import json
+import re # Import the re module for regex operations
+from json_repair import repair_json
 from typing import Dict, Any
 from src.services.api_client import APIClient
 from src.models.story import Story
@@ -25,7 +27,8 @@ class StoryGenerator:
 
         return f"""
         Eres un experto creador de Black Stories. Tu tarea es generar una historia de Black Stories
-        con el siguiente formato JSON:
+        con el siguiente formato JSON. Es IMPERATIVO que tu respuesta sea ÚNICAMENTE el objeto JSON, sin ningún texto adicional, preámbulo o explicación.
+
         {{
             "situacion_misteriosa": "Una breve descripción de la situación inicial que se presenta al detective.",
             "solucion_oculta": "La explicación completa y detallada de lo que realmente sucedió."
@@ -49,17 +52,29 @@ class StoryGenerator:
                 
                 # Attempt to find and extract JSON from the response
                 json_string = self._extract_json_from_response(response_text)
-
+                json_string = repair_json(json_string)
                 story_data = json.loads(json_string)
+                mystery_situation = story_data["situacion_misteriosa"]
+                hidden_solution = story_data.get("solucion_oculta")
+                if hidden_solution is None:
+                    # Handle potential misspelling from LLM
+                    hidden_solution = story_data.get("solucion_ocruta")
+                    if hidden_solution is None:
+                        raise KeyError("Neither 'solucion_oculta' nor 'solucion_ocruta' found in response.")
+
                 return Story(
-                    mystery_situation=story_data["situacion_misteriosa"],
-                    hidden_solution=story_data["solucion_oculta"]
+                    mystery_situation=mystery_situation,
+                    hidden_solution=hidden_solution
                 )
             except json.JSONDecodeError as e:
                 print(f"DEBUG: Invalid JSON received from API: {json_string}. Error: {e}")
                 if not display_error_and_retry(f"Error de formato JSON al generar la historia: {e}. Reintentando..."):
                     raise
-            except (ConnectionError, ValueError, KeyError) as e:
+            except KeyError as e:
+                print(f"DEBUG: Missing key in story data: {e}. Received data: {story_data}")
+                if not display_error_and_retry(f"Error al generar la historia: Falta la clave esperada en el JSON: {e}. Reintentando..."):
+                    raise
+            except (ConnectionError, ValueError) as e:
                 if not display_error_and_retry(f"Error al generar la historia: {e}"):
                     raise
 
@@ -90,10 +105,10 @@ class StoryGenerator:
             # If all else fails, return the original text and let json.loads handle the error
             json_string = response_text.strip()
         
-        # Sanitize the JSON string to escape invalid control characters
-        # This is a common issue with LLM outputs that might include unescaped newlines/tabs within string values
-        json_string = json_string.replace('\\n', '\\\\n').replace('\\t', '\\\\t').replace('\\r', '\\\\r')
-        # Also, sometimes the LLM might output actual newline characters that need to be escaped
-        json_string = json_string.replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r')
+        # Remove any invalid control characters that might still be present
+        # This regex matches any control character (0x00-0x1F) except for tab (0x09),
+        # newline (0x0A), and carriage return (0x0D), which are valid in JSON strings
+        # when escaped.
+        json_string = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', json_string)
 
         return json_string
