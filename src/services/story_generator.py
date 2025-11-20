@@ -4,8 +4,6 @@ from json_repair import repair_json
 from typing import Dict, Any
 from src.services.api_client import APIClient
 from src.models.story import Story
-from src.utils.display import display_error_and_retry
-
 class StoryGenerator:
     """
     Generates Black Stories using an LLM.
@@ -67,16 +65,11 @@ class StoryGenerator:
                     hidden_solution=hidden_solution
                 )
             except json.JSONDecodeError as e:
-                print(f"DEBUG: Invalid JSON received from API: {json_string}. Error: {e}")
-                if not display_error_and_retry(f"Error de formato JSON al generar la historia: {e}. Reintentando..."):
-                    raise
+                raise ValueError(f"Error de formato JSON al generar la historia: {e}. Raw response: {json_string}")
             except KeyError as e:
-                print(f"DEBUG: Missing key in story data: {e}. Received data: {story_data}")
-                if not display_error_and_retry(f"Error al generar la historia: Falta la clave esperada en el JSON: {e}. Reintentando..."):
-                    raise
+                raise ValueError(f"Error al generar la historia: Falta la clave esperada en el JSON: {e}. Received data: {story_data}")
             except (ConnectionError, ValueError) as e:
-                if not display_error_and_retry(f"Error al generar la historia: {e}"):
-                    raise
+                raise type(e)(f"Error al generar la historia: {e}")
 
     def _extract_json_from_response(self, response_text: str) -> str:
         """

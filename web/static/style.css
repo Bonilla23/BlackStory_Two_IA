@@ -1,0 +1,75 @@
+/* Basic styling for the web application */
+body {
+    font-family: sans-serif;
+    margin: 2em;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input, select, button {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+
+#game-output {
+    background-color: #f4f4f4;
+    padding: 1em;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.event {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.narrator {
+    color: #0056b3;
+    margin-bottom: 10px;
+}
+
+.detective {
+    color: #28a745;
+    margin-bottom: 10px;
+}
+
+.result {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #e9ecef;
+}
+
+.error {
+    color: #dc3545;
+    font-weight: bold;
+}

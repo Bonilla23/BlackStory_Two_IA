@@ -4,8 +4,6 @@ from datetime import datetime
 from typing import List, Tuple
 from src.services.api_client import APIClient
 from src.models.story import Story
-from src.utils.display import display_error_and_retry
-
 class Narrator:
     """
     Manages the Narrator AI's role in the Black Stories game.
@@ -62,11 +60,10 @@ class Narrator:
                     return response
                 else:
                     # If the AI doesn't follow the rules, try again with a stricter prompt
-                    print(f"DEBUG: Narrator gave an invalid response: '{response}'. Retrying...")
-                    prompt += "\n\nADVERTENCIA: Debes responder ESTRICTAMENTE solo 'sí', 'no' o 'no es relevante'."
+                    # In web context, we'll just raise an error to be caught by the game engine
+                    raise ValueError(f"Narrator gave an invalid response: '{response}'. Expected 'sí', 'no', or 'no es relevante'.")
             except ConnectionError as e:
-                if not display_error_and_retry(f"Error de conexión con el Narrador: {e}"):
-                    raise
+                raise ConnectionError(f"Error de conexión con el Narrador: {e}")
 
     def _get_validation_prompt(self, detective_solution: str) -> str:
         """
@@ -128,11 +125,10 @@ class Narrator:
                 
                 return verdict, analysis
             except json.JSONDecodeError as e:
-                print(f"DEBUG: Narrator gave an invalid JSON response during validation. Raw response: '{response_text}'. Retrying...")
-                prompt += "\n\nADVERTENCIA: Debes responder ESTRICTAMENTE en formato JSON como se especificó, SIN bloques de código markdown (```json ... ```)."
+                # In web context, we'll just raise an error to be caught by the game engine
+                raise ValueError(f"Narrator gave an invalid JSON response during validation. Raw response: '{response_text}'. Error: {e}")
             except (ConnectionError, ValueError, KeyError) as e:
-                if not display_error_and_retry(f"Error al validar la solución con el Narrador: {e}"):
-                    raise
+                raise type(e)(f"Error al validar la solución con el Narrador: {e}")
 
     def save_full_conversation(self) -> None:
         """

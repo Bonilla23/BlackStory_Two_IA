@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackStory AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>BlackStory AI</h1>
+        <form id="game-form">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty" name="difficulty">
+                <option value="facil">Fácil</option>
+                <option value="media">Media</option>
+                <option value="dificil">Difícil</option>
+            </select>
+
+            <label for="narrator-model">Narrator Model:</label>
+            <input type="text" id="narrator-model" name="narrator_model" value="gpt-4">
+
+            <label for="detective-model">Detective Model:</label>
+            <input type="text" id="detective-model" name="detective_model" value="gpt-3.5-turbo">
+
+            <button type="submit">Start Game</button>
+        </form>
+        <div id="game-output"></div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

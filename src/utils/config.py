@@ -7,7 +7,7 @@ class Config:
     Handles configuration loading from environment variables and CLI arguments.
     """
 
-    def __init__(self):
+    def __init__(self, parse_cli: bool = True):
         self.narrator_model: str = "gemini:gemini-2.5-flash"
         self.detective_model: str = "gemini:gemini-2.5-flash"
         self.difficulty: str = "media"
@@ -19,7 +19,8 @@ class Config:
         self.gemini_api_key: str | None = None
         self.ollama_host: str = "http://localhost:11434" # Changed to ollama_host
         self._load_env_vars()
-        self._parse_cli_args()
+        if parse_cli:
+            self._parse_cli_args()
 
     def _load_env_vars(self) -> None:
         """
