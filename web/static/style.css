@@ -35,13 +35,46 @@ button {
     background-color: #007bff;
     color: white;
     border: none;
+    transition: background-color 0.3s ease;
 }
 
-#game-output {
+button:hover {
+    background-color: #0056b3;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ccc;
+    margin: 30px 0;
+}
+
+h2 {
+    color: #333;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+h3 {
+    color: #007bff;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h4 {
+    color: #333;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+#game-output, #fight-output {
     background-color: #f4f4f4;
     padding: 1em;
-    border-radius: 5px;
+    border-radius: 8px;
     margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .event {
@@ -53,11 +86,35 @@ button {
 .narrator {
     color: #0056b3;
     margin-bottom: 10px;
+    background-color: #e6f0fa;
+    padding: 8px;
+    border-radius: 4px;
 }
 
 .detective {
     color: #28a745;
     margin-bottom: 10px;
+    background-color: #e6faed;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.detective1-output .detective {
+    background-color: #ffe0b2; /* Light orange for Detective 1 */
+    color: #e65100; /* Darker orange text */
+}
+
+.detective2-output .detective {
+    background-color: #bbdefb; /* Light blue for Detective 2 */
+    color: #1976d2; /* Darker blue text */
+}
+
+.fight-summary-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-left: 5px solid #007bff;
+    background-color: #e0f2f7;
+    border-radius: 4px;
 }
 
 .result {

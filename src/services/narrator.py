@@ -73,7 +73,11 @@ class Narrator:
             "facil": "La evaluación es flexible; capturar el concepto principal es suficiente.",
             "media": "La evaluación es moderada; debe capturar la esencia de lo que pasó.",
             "dificil": "La evaluación es estricta; debe mencionar todos los elementos clave de la solución.",
+            "fight_mode": "La evaluación es moderada; debe capturar la esencia de lo que pasó, similar a la dificultad 'media'." # Added for fight mode
         }
+        
+        # Default to 'media' if 'fight_mode' is used for validation criteria, or if difficulty is not found
+        current_difficulty_criteria = difficulty_criteria.get(self.difficulty, difficulty_criteria["media"])
 
         return f"""
         Eres la IA Narrador y tu tarea es validar la solución propuesta por el Detective.

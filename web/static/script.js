@@ -1,9 +1,51 @@
 document.getElementById('game-form').addEventListener('submit', async function(event) {
     event.preventDefault();
+    await startGame(this);
+});
 
-    const form = this;
-    const submitButton = form.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
+document.getElementById('fight-mode-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    await startFightMode(this);
+});
+
+// Fight Mode Toggle Logic
+const fightModeYes = document.getElementById('fight-mode-yes');
+const fightModeNo = document.getElementById('fight-mode-no');
+const fightModeSection = document.getElementById('fight-mode-section');
+const startGameButton = document.getElementById('start-game-button');
+const startFightButton = document.getElementById('start-fight-button');
+
+function toggleFightModeSection() {
+    if (fightModeYes.checked) {
+        fightModeSection.style.display = 'block';
+        startGameButton.style.display = 'none'; // Hide Start Game button when fight mode is active
+        startFightButton.style.display = 'block'; // Show Start Fight button
+        document.getElementById('game-output').style.display = 'none';
+        document.getElementById('fight-output').style.display = 'block';
+    } else {
+        fightModeSection.style.display = 'none';
+        startGameButton.style.display = 'block'; // Show Start Game button when fight mode is inactive
+        startFightButton.style.display = 'none'; // Hide Start Fight button
+        document.getElementById('game-output').style.display = 'block';
+        document.getElementById('fight-output').style.display = 'none';
+    }
+}
+
+fightModeYes.addEventListener('change', toggleFightModeSection);
+fightModeNo.addEventListener('change', toggleFightModeSection);
+
+// Initial state
+toggleFightModeSection();
+
+async function startGame(form) {
+    document.getElementById('game-output').style.display = 'block';
+    document.getElementById('fight-output').style.display = 'none';
+
+    // Ensure the correct button is disabled
+    const submitButton = document.getElementById('start-game-button');
+    if (submitButton) {
+        submitButton.disabled = true;
+    }
 
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
@@ -23,7 +65,7 @@ document.getElementById('game-form').addEventListener('submit', async function(e
     const decoder = new TextDecoder();
     gameOutput.innerHTML = '';
 
-    const processLine = (line) => {
+    await processStream(reader, decoder, gameOutput, submitButton, (line) => {
         if (line.trim() === '') return;
         
         const messageElement = document.createElement('div');
@@ -54,14 +96,115 @@ document.getElementById('game-form').addEventListener('submit', async function(e
 
         messageElement.textContent = line;
         gameOutput.appendChild(messageElement);
+    });
+}
+
+async function startFightMode(form) {
+    document.getElementById('game-output').style.display = 'none';
+    document.getElementById('fight-output').style.display = 'block';
+
+    // Ensure the correct button is disabled based on the form context
+    const submitButton = form.id === 'game-form' ? document.getElementById('start-game-button') : document.getElementById('start-fight-button');
+    if (submitButton) {
+        submitButton.disabled = true;
+    }
+
+    const formDataFight = new FormData(form);
+    const dataFight = Object.fromEntries(formDataFight.entries());
+
+    // Get narrator model from the main game form
+    const gameForm = document.getElementById('game-form');
+    const formDataGame = new FormData(gameForm);
+    const dataGame = Object.fromEntries(formDataGame.entries());
+
+    const data = {
+        ...dataFight,
+        narrator_model: dataGame.narrator_model || 'gpt-4' // Use game form's narrator, default to gpt-4
     };
 
+    const detective1Output = document.getElementById('detective1-output');
+    const detective2Output = document.getElementById('detective2-output');
+    const fightSummary = document.getElementById('fight-summary');
+    detective1Output.innerHTML = '<h4>Detective 1:</h4><div class="event">Starting fight...</div>';
+    detective2Output.innerHTML = '<h4>Detective 2:</h4>';
+    fightSummary.innerHTML = '';
+
+    const response = await fetch('/start_fight', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    detective1Output.innerHTML = '<h4>Detective 1:</h4>';
+    detective2Output.innerHTML = '<h4>Detective 2:</h4>';
+
+    await processStream(reader, decoder, null, submitButton, (line) => {
+        if (line.trim() === '') return;
+        
+        try {
+            const msg = JSON.parse(line);
+            const messageElement = document.createElement('div');
+
+            if (msg.type === 'narrator') {
+                messageElement.classList.add('narrator');
+                messageElement.textContent = msg.content;
+                detective1Output.appendChild(messageElement.cloneNode(true));
+                detective2Output.appendChild(messageElement);
+            } else if (msg.type === 'detective1_question') {
+                messageElement.classList.add('detective', 'detective1-output');
+                messageElement.textContent = `Q: ${msg.content}`;
+                detective1Output.appendChild(messageElement);
+            } else if (msg.type === 'detective1_answer') {
+                messageElement.classList.add('detective', 'detective1-output');
+                messageElement.textContent = `A: ${msg.content}`;
+                detective1Output.appendChild(messageElement);
+            } else if (msg.type === 'detective2_question') {
+                messageElement.classList.add('detective', 'detective2-output');
+                messageElement.textContent = `Q: ${msg.content}`;
+                detective2Output.appendChild(messageElement);
+            } else if (msg.type === 'detective2_answer') {
+                messageElement.classList.add('detective', 'detective2-output');
+                messageElement.textContent = `A: ${msg.content}`;
+                detective2Output.appendChild(messageElement);
+            } else if (msg.type === 'summary') {
+                const summaryItem = document.createElement('div');
+                summaryItem.classList.add('fight-summary-item');
+                summaryItem.innerHTML = msg.content;
+                fightSummary.appendChild(summaryItem);
+            } else if (msg.type === 'error') {
+                messageElement.classList.add('error');
+                messageElement.textContent = `Error: ${msg.content}`;
+                detective1Output.appendChild(messageElement.cloneNode(true));
+                detective2Output.appendChild(messageElement.cloneNode(true));
+                fightSummary.appendChild(messageElement);
+            } else {
+                 messageElement.classList.add('event');
+                 messageElement.textContent = msg.content;
+                 detective1Output.appendChild(messageElement.cloneNode(true));
+                 detective2Output.appendChild(messageElement.cloneNode(true));
+            }
+        } catch (e) {
+            console.error("Failed to parse JSON for line:", line, e);
+            const errorElement = document.createElement('div');
+            errorElement.classList.add('error');
+            errorElement.textContent = `Error processing message: ${line}`;
+            detective1Output.appendChild(errorElement.cloneNode(true));
+            detective2Output.appendChild(errorElement.cloneNode(true));
+        }
+    });
+}
+
+async function processStream(reader, decoder, outputElement, submitButton, processLineCallback) {
     let buffer = '';
     while (true) {
         const { done, value } = await reader.read();
         if (done) {
             if (buffer) {
-                processLine(buffer);
+                processLineCallback(buffer);
             }
             submitButton.disabled = false;
             break;
@@ -71,7 +214,7 @@ document.getElementById('game-form').addEventListener('submit', async function(e
         buffer = lines.pop();
 
         for (const line of lines) {
-            processLine(line);
+            processLineCallback(line);
         }
     }
-});
+}

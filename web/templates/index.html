@@ -22,10 +22,39 @@
 
             <label for="detective-model">Detective Model:</label>
             <input type="text" id="detective-model" name="detective_model" value="gpt-3.5-turbo">
-
-            <button type="submit">Start Game</button>
         </form>
+
+        <hr>
+
+        <h2>Fight Mode</h2>
+        <div class="fight-mode-toggle">
+            <label>¿Activar Modo Pelea?</label>
+            <input type="radio" id="fight-mode-yes" name="fight_mode_toggle" value="yes"> <label for="fight-mode-yes">Sí</label>
+            <input type="radio" id="fight-mode-no" name="fight_mode_toggle" value="no" checked> <label for="fight-mode-no">No</label>
+        </div>
+
+        <div id="fight-mode-section" style="display: none;">
+            <form id="fight-mode-form">
+                <label for="detective-model-1">Detective Model 1:</label>
+                <input type="text" id="detective-model-1" name="detective_model_1" value="gpt-3.5-turbo">
+
+                <label for="detective-model-2">Detective Model 2:</label>
+                <input type="text" id="detective-model-2" name="detective_model_2" value="claude-3-opus-20240229">
+
+                <button type="submit" id="start-fight-button">Start Fight</button>
+            </form>
+        </div>
+        
+        <hr>
+        <button type="submit" id="start-game-button" form="game-form">Start Game</button>
+
         <div id="game-output"></div>
+        <div id="fight-output" style="display: none;">
+            <h3>Fight Results</h3>
+            <div id="detective1-output"><h4>Detective 1:</h4></div>
+            <div id="detective2-output"><h4>Detective 2:</h4></div>
+            <div id="fight-summary"></div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
