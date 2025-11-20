@@ -25,27 +25,35 @@ document.getElementById('game-form').addEventListener('submit', async function(e
 
     const processLine = (line) => {
         if (line.trim() === '') return;
-        try {
-            const data = JSON.parse(line);
-            const messageElement = document.createElement('div');
-            messageElement.classList.add(data.type);
-            messageElement.textContent = data.content;
-            gameOutput.appendChild(messageElement);
-
-            if (data.content === 'save_conversation') {
-                messageElement.remove();
-                const saveButton = document.createElement('button');
-                saveButton.textContent = 'Save Conversation';
-                saveButton.addEventListener('click', async () => {
-                    await fetch('/save_conversation', { method: 'POST' });
-                    alert('Conversation saved!');
-                    saveButton.disabled = true;
-                });
-                gameOutput.appendChild(saveButton);
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', line, e);
+        
+        const messageElement = document.createElement('div');
+        // Determine class based on content
+        if (line.startsWith('Generando') || line.startsWith('==') || line.startsWith('Narrador:') || line.startsWith('Detective:') || line.startsWith('Dificultad:') || line.startsWith('---') || line.startsWith('Misterio:') || line.startsWith('¡Se ha alcanzado') || line.startsWith('El Detective tiene') || line.startsWith('RESULTADO:') || line.startsWith('HISTORIA ORIGINAL:') || line.startsWith('Situación misteriosa:') || line.startsWith('Solución oculta:') || line.startsWith('SOLUCIÓN DEL DETECTIVE:') || line.startsWith('No se proporcionó') || line.startsWith('VEREDICTO DEL NARRADOR:') || line.startsWith('Veredicto:') || line.startsWith('Análisis:') || line.startsWith('El juego ha terminado')) {
+            messageElement.classList.add('event');
+        } else if (line.startsWith('Detective:')) {
+            messageElement.classList.add('detective');
+            line = line.replace('Detective: ', ''); // Remove prefix for display
+        } else if (line.startsWith('Narrador:')) {
+            messageElement.classList.add('narrator');
+            line = line.replace('Narrador: ', ''); // Remove prefix for display
+        } else if (line.startsWith('Error')) {
+            messageElement.classList.add('error');
         }
+
+        if (line === 'save_conversation') {
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save Conversation';
+            saveButton.addEventListener('click', async () => {
+                await fetch('/save_conversation', { method: 'POST' });
+                alert('Conversation saved!');
+                saveButton.disabled = true;
+            });
+            gameOutput.appendChild(saveButton);
+            return;
+        }
+
+        messageElement.textContent = line;
+        gameOutput.appendChild(messageElement);
     };
 
     let buffer = '';

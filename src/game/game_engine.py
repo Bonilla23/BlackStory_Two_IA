@@ -23,7 +23,7 @@ class GameEngine:
         """
         Initializes the game by generating a story and setting up AI roles.
         """
-        yield json.dumps({"type": "event", "content": "Generando una nueva historia de Black Stories..."})
+        yield "Generando una nueva historia de Black Stories..."
         story_generator = StoryGenerator(self.api_client, narrator_model)
         
         story: Story
@@ -33,7 +33,7 @@ class GameEngine:
                 story = story_generator.generate_story(difficulty)
                 break
             except Exception as e:
-                yield json.dumps({"type": "error", "content": f"Error al generar la historia (intento {attempt + 1}/{retries}): {e}"})
+                yield f"Error al generar la historia (intento {attempt + 1}/{retries}): {e}"
                 if attempt + 1 == retries:
                     raise
         
@@ -45,15 +45,15 @@ class GameEngine:
             hidden_solution=story.hidden_solution,
         )
 
-        yield json.dumps({"type": "event", "content": "============================================================"})
-        yield json.dumps({"type": "event", "content": "                  BLACK STORIES AI"})
-        yield json.dumps({"type": "event", "content": "============================================================"})
-        yield json.dumps({"type": "event", "content": f"Narrador: {narrator_model}"})
-        yield json.dumps({"type": "event", "content": f"Detective: {detective_model}"})
-        yield json.dumps({"type": "event", "content": f"Dificultad: {difficulty}"})
-        yield json.dumps({"type": "event", "content": "------------------------------------------------------------"})
-        yield json.dumps({"type": "event", "content": f"Misterio: {story.mystery_situation}"})
-        yield json.dumps({"type": "event", "content": "============================================================"})
+        yield "============================================================"
+        yield "                  BLACK STORIES AI"
+        yield "============================================================"
+        yield f"Narrador: {narrator_model}"
+        yield f"Detective: {detective_model}"
+        yield f"Dificultad: {difficulty}"
+        yield "------------------------------------------------------------"
+        yield f"Misterio: {story.mystery_situation}"
+        yield "============================================================"
 
     def _run_game_loop(self) -> Generator[str, None, None]:
         """
@@ -79,8 +79,8 @@ class GameEngine:
             current_questions = len(self.game_state.qa_history)
 
             if current_questions >= max_questions and not detective_ready_to_solve:
-                yield json.dumps({"type": "event", "content": f"¡Se ha alcanzado el límite de {max_questions} preguntas!"})
-                yield json.dumps({"type": "event", "content": "El Detective tiene UNA ÚLTIMA OPORTUNIDAD para dar su solución final."})
+                yield f"¡Se ha alcanzado el límite de {max_questions} preguntas!"
+                yield "El Detective tiene UNA ÚLTIMA OPORTUNIDAD para dar su solución final."
                 detective_ready_to_solve = True
             
             if detective_ready_to_solve:
@@ -93,14 +93,14 @@ class GameEngine:
 
                 if detective_ai.is_ready_to_solve(detective_response):
                     detective_ready_to_solve = True
-                    yield json.dumps({"type": "detective", "content": "¡Estoy listo para resolver!"})
+                    yield "Detective: ¡Estoy listo para resolver!"
                     continue
 
                 narrator_answer = self.narrator_ai.answer_question(detective_response, self.game_state.qa_history)
                 self.game_state.qa_history.append((detective_response, narrator_answer))
                 
-                yield json.dumps({"type": "detective", "content": detective_response})
-                yield json.dumps({"type": "narrator", "content": narrator_answer})
+                yield f"Detective: {detective_response}"
+                yield f"Narrador: {narrator_answer}"
 
         if not self.game_state.detective_solved and not self.game_state.detective_solution_attempt:
             self.game_state.detective_solved = True
@@ -123,16 +123,16 @@ class GameEngine:
             else:
                 result = "DERROTA"
         
-        yield json.dumps({"type": "result", "content": f"RESULTADO: {result}"})
-        yield json.dumps({"type": "event", "content": "HISTORIA ORIGINAL:"})
-        yield json.dumps({"type": "event", "content": f"Situación misteriosa: {self.game_state.mystery_situation}"})
-        yield json.dumps({"type": "event", "content": f"Solución oculta: {self.game_state.hidden_solution}"})
-        yield json.dumps({"type": "event", "content": "SOLUCIÓN DEL DETECTIVE:"})
-        yield json.dumps({"type": "event", "content": self.game_state.detective_solution_attempt if self.game_state.detective_solution_attempt else "No se proporcionó una solución final."})
-        yield json.dumps({"type": "event", "content": "VEREDICTO DEL NARRADOR:"})
-        yield json.dumps({"type": "event", "content": f"Veredicto: {verdict}"})
-        yield json.dumps({"type": "event", "content": f"Análisis: {analysis}"})
-        yield json.dumps({"type": "event", "content": "save_conversation"})
+        yield f"RESULTADO: {result}"
+        yield "HISTORIA ORIGINAL:"
+        yield f"Situación misteriosa: {self.game_state.mystery_situation}"
+        yield f"Solución oculta: {self.game_state.hidden_solution}"
+        yield "SOLUCIÓN DEL DETECTIVE:"
+        yield self.game_state.detective_solution_attempt if self.game_state.detective_solution_attempt else "No se proporcionó una solución final."
+        yield "VEREDICTO DEL NARRADOR:"
+        yield f"Veredicto: {verdict}"
+        yield f"Análisis: {analysis}"
+        yield "save_conversation"
 
     def run(self, difficulty: str, narrator_model: str, detective_model: str) -> Generator[str, None, None]:
         """
@@ -143,8 +143,8 @@ class GameEngine:
             yield from self._run_game_loop()
             yield from self._finalize_game()
         except Exception as e:
-            yield json.dumps({"type": "error", "content": f"El juego ha terminado debido a un error crítico: {e}"})
-            yield json.dumps({"type": "error", "content": "Asegúrate de que tus claves de API y la URL de Ollama estén configuradas correctamente."})
+            yield f"El juego ha terminado debido a un error crítico: {e}"
+            yield "Asegúrate de que tus claves de API y la URL de Ollama estén configuradas correctamente."
     
     def save_conversation(self):
         if self.narrator_ai:

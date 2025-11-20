@@ -32,7 +32,7 @@ def start_game():
             game_engine_instance = GameEngine(config)
             for line in game_engine_instance.run(difficulty, narrator_model, detective_model):
                 print(f"DEBUG: Yielding line: {line}") # Added for debugging
-                yield json.dumps({"type": "event", "content": line}) + '\n'
+                yield line + '\n'
         except Exception as e:
             print(f"ERROR: An exception occurred in generate: {e}") # Added for debugging
             yield json.dumps({"type": "error", "content": f"An error occurred: {e}"})
