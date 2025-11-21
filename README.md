@@ -75,22 +75,6 @@ python main.py -narrador provider:modelo -detective provider:modelo -dificultad 
 
 ## Usage Examples
 
-### Command-Line Interface
-
-```bash
-# Basic usage (uses default values)
-uv run main.py
-
-# Specify Narrator and Detective models
-uv run main.py -narrador gemini:gemini-2.0-flash -detective ollama:llama2
-
-# Hard game with different models
-uv run main.py -narrador gemini:gemini-pro -detective gemini:gemini-2.0-flash -dificultad dificil
-
-# Only change difficulty (uses default models)
-uv run main.py -dificultad facil
-```
-
 ### Web Interface
 
 To start the web application, navigate to the project root and run:
