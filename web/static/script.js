@@ -132,6 +132,7 @@ async function startFightMode(form) {
     const data = {
         ...dataFight, // Contains detective_model_1 and detective_model_2
         narrator_model: dataGame.narrator_model || 'gpt-4', // Use game form's narrator, default to gpt-4
+        difficulty: dataGame.difficulty, // Include difficulty from the main game form
     };
 
     const fightConversationOutput = document.getElementById('fight-conversation-output');

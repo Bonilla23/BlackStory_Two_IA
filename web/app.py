@@ -48,9 +48,10 @@ async def start_fight():
     data = request.json
     # Use the narrator model from the main game form as the default for fight mode
     # If the main form's narrator model is not provided, default to 'gpt-4'
-    narrator_model = data.get('narrator_model', 'gpt-4') 
+    narrator_model = data.get('narrator_model', 'gpt-4')
     detective_model_1 = data.get('detective_model_1')
     detective_model_2 = data.get('detective_model_2')
+    difficulty = data.get('difficulty') # Get difficulty from frontend
 
     def generate_fight_stream_sync():
         global fight_engine_instance
@@ -58,6 +59,12 @@ async def start_fight():
         async def stream_content():
             config_loader = Config(parse_cli=False)
             config = config_loader.get_config()
+            
+            # Override default difficulty with the one from the frontend
+            if difficulty:
+                config["difficulty"] = difficulty
+                print(f"DEBUG: Fight mode difficulty set to: {difficulty}")
+
             fight_engine_instance = FightEngine(config)
             try:
                 async for line in fight_engine_instance.run(narrator_model, detective_model_1, detective_model_2):

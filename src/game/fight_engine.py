@@ -191,14 +191,14 @@ class FightEngine:
         # Finalize Detective 1
         verdict1, analysis1 = "No solution provided", ""
         if self.game_state_det1.detective_solution_attempt:
-            # Pass only Detective 1's Q&A history to validate their solution
-            verdict1, analysis1 = await asyncio.to_thread(self.narrator_ai.validate_solution, self.game_state_det1.detective_solution_attempt, self.game_state_det1.qa_history)
+            # Validate solution without passing qa_history, as Narrator.validate_solution does not accept it.
+            verdict1, analysis1 = await asyncio.to_thread(self.narrator_ai.validate_solution, self.game_state_det1.detective_solution_attempt)
         
         # Finalize Detective 2
         verdict2, analysis2 = "No solution provided", ""
         if self.game_state_det2.detective_solution_attempt:
-            # Pass only Detective 2's Q&A history to validate their solution
-            verdict2, analysis2 = await asyncio.to_thread(self.narrator_ai.validate_solution, self.game_state_det2.detective_solution_attempt, self.game_state_det2.qa_history)
+            # Validate solution without passing qa_history, as Narrator.validate_solution does not accept it.
+            verdict2, analysis2 = await asyncio.to_thread(self.narrator_ai.validate_solution, self.game_state_det2.detective_solution_attempt)
 
         # Determine Winner
         winner = None
