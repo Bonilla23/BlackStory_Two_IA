@@ -127,3 +127,67 @@ def get_story_generation_prompt(difficulty: str) -> str:
     sea intrigante pero no revele la solución directamente.
     La historia debe ser concisa y clara.
     """
+
+def get_visionary_prompt(mystery_situation: str, qa_history: List[Tuple[str, str]]) -> str:
+    """
+    Prompt for the Visionary Detective: proposes wild and creative theories.
+    """
+    history_str = "\n".join([f"Pregunta: {q}\nRespuesta: {a}" for q, a in qa_history])
+    if history_str:
+        history_str = "\n\nHistorial del caso:\n" + history_str
+
+    return f"""
+    Eres "El Visionario", un detective creativo y poco convencional en un consejo de investigación.
+    Tu rol es proponer teorías audaces, pensar fuera de la caja e imaginar escenarios que otros descartarían.
+    No te preocupes si suenas descabellado; tu trabajo es abrir nuevas líneas de investigación.
+
+    Caso: {mystery_situation}
+    {history_str}
+
+    Basado en lo que sabemos, ¿qué teoría loca o creativa se te ocurre sobre lo que pasó?
+    Sé breve y directo.
+    """
+
+def get_skeptic_prompt(mystery_situation: str, qa_history: List[Tuple[str, str]], visionary_theory: str) -> str:
+    """
+    Prompt for the Skeptic Detective: critiques theories and checks logic.
+    """
+    history_str = "\n".join([f"Pregunta: {q}\nRespuesta: {a}" for q, a in qa_history])
+    if history_str:
+        history_str = "\n\nHistorial del caso:\n" + history_str
+
+    return f"""
+    Eres "El Escéptico", un detective lógico y crítico en un consejo de investigación.
+    Tu rol es analizar las teorías propuestas, buscar fallos lógicos y mantener al equipo con los pies en la tierra.
+
+    Caso: {mystery_situation}
+    {history_str}
+
+    El Visionario ha propuesto esta teoría: "{visionary_theory}"
+
+    Analiza esta teoría. ¿Qué pruebas nos faltan? ¿Qué es ilógico? ¿Qué deberíamos preguntar para confirmarla o descartarla?
+    Sé breve y crítico.
+    """
+
+def get_leader_prompt(mystery_situation: str, qa_history: List[Tuple[str, str]], visionary_theory: str, skeptic_critique: str) -> str:
+    """
+    Prompt for the Leader Detective: synthesizes and asks the final question.
+    """
+    history_str = "\n".join([f"Pregunta: {q}\nRespuesta: {a}" for q, a in qa_history])
+    if history_str:
+        history_str = "\n\nHistorial del caso:\n" + history_str
+
+    return f"""
+    Eres "El Líder", el jefe de un consejo de investigación.
+    Tu rol es escuchar a tu equipo y formular LA MEJOR PREGUNTA POSIBLE para hacerle al testigo (Narrador).
+    Recuerda que el Narrador SOLO responde "sí", "no" o "no es relevante".
+
+    Caso: {mystery_situation}
+    {history_str}
+
+    El Visionario dice: "{visionary_theory}"
+    El Escéptico dice: "{skeptic_critique}"
+
+    Basado en este debate, formula UNA ÚNICA pregunta de "sí/no" para avanzar en el caso.
+    Si crees que ya tenemos la solución completa, di exactamente: "SOLUCIÓN: [Tu explicación completa]".
+    """

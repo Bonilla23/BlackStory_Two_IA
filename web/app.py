@@ -10,6 +10,7 @@ from src.utils.config import Config
 import asyncio
 from src.game.game_engine import GameEngine
 from src.game.fight_engine import FightEngine # Import FightEngine
+from src.game.council_engine import CouncilEngine # Import CouncilEngine
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 active_games = {} # Dictionary to store game instances by session_id
@@ -98,6 +99,52 @@ async def start_fight():
             loop.close()
 
     return Response(generate_fight_stream_sync(), mimetype='application/x-ndjson')
+
+@app.route('/start_council', methods=['POST'])
+async def start_council():
+    data = request.json
+    narrator_model = data.get('narrator_model', 'gpt-4')
+    visionary_model = data.get('visionary_model')
+    skeptic_model = data.get('skeptic_model')
+    leader_model = data.get('leader_model')
+    difficulty = data.get('difficulty')
+    session_id = data.get('session_id')
+
+    if not session_id:
+        return Response(json.dumps({"type": "error", "content": "Session ID required"}), mimetype='application/x-ndjson')
+
+    def generate_council_stream_sync():
+        async def stream_content():
+            config_loader = Config(parse_cli=False)
+            config = config_loader.get_config()
+            
+            if difficulty:
+                config["difficulty"] = difficulty
+
+            council_engine = CouncilEngine(config)
+            active_games[session_id] = council_engine
+
+            try:
+                for line in council_engine.run(difficulty, narrator_model, visionary_model, skeptic_model, leader_model):
+                    print(f"DEBUG: Yielding council line: {line}")
+                    yield line + '\n'
+            except Exception as e:
+                print(f"ERROR: An exception occurred in council stream: {e}")
+                yield json.dumps({"type": "error", "content": f"An error occurred in council mode: {e}"}) + '\n'
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            async_iter = stream_content().__aiter__()
+            while True:
+                try:
+                    yield loop.run_until_complete(async_iter.__anext__())
+                except StopAsyncIteration:
+                    break
+        finally:
+            loop.close()
+
+    return Response(generate_council_stream_sync(), mimetype='application/x-ndjson')
 
 @app.route('/save_conversation', methods=['POST'])
 def save_conversation():

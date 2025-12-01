@@ -32,61 +32,102 @@
                         </div>
                     </div>
 
+                    <datalist id="model-options">
+                        <option value="gemini:gemini-2.5-flash">
+                        <option value="gemini:gemini-pro">
+                        <option value="ollama:llama3">
+                        <option value="ollama:mistral">
+                        <option value="ollama:gemma">
+                    </datalist>
+
                     <div class="form-group" id="narrator-group">
                         <label for="narrator-model">Narrator Model</label>
-                        <input type="text" id="narrator-model" name="narrator_model" value="gemini:gemini-2.5-flash">
-                    </div>
-
-                    <div class="form-group" id="detective-group">
-                        <label for="detective-model">Detective Model</label>
-                        <input type="text" id="detective-model" name="detective_model" value="gemini:gemini-2.5-flash">
+                        <input type="text" id="narrator-model" name="narrator_model" value="gemini:gemini-2.5-flash"
+                            list="model-options">
+                        <small style="color: #888; font-size: 0.8em;">Format: provider:model (e.g.,
+                            ollama:llama3)</small>
                     </div>
                 </form>
 
                 <div class="divider"></div>
 
-                <div class="fight-mode-toggle">
-                    <label class="toggle-label">Fight Mode</label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="fight-mode-checkbox">
-                        <label for="fight-mode-checkbox" class="slider"></label>
+                <div class="form-group">
+                    <label for="game-mode">Game Mode</label>
+                    <div class="select-wrapper">
+                        <select id="game-mode">
+                            <option value="single">Single Player</option>
+                            <option value="fight">Fight Mode (1v1)</option>
+                            <option value="council">Council Mode (3 Agents)</option>
+                        </select>
                     </div>
                 </div>
 
+                <!-- Single Player Settings -->
+                <div id="single-mode-settings">
+                    <div class="form-group" id="detective-group">
+                        <label for="detective-model">Detective Model</label>
+                        <input type="text" id="detective-model" name="detective_model" value="gemini:gemini-2.5-flash"
+                            list="model-options">
+                    </div>
+                </div>
+
+                <!-- Fight Mode Settings -->
                 <div id="fight-mode-settings" class="hidden">
                     <form id="fight-mode-form">
                         <div class="form-group">
                             <label for="detective-model-1">Detective 1 Model</label>
                             <input type="text" id="detective-model-1" name="detective_model_1"
-                                value="gemini:gemini-2.5-flash">
+                                value="gemini:gemini-2.5-flash" list="model-options">
                         </div>
 
                         <div class="form-group">
                             <label for="detective-model-2">Detective 2 Model</label>
                             <input type="text" id="detective-model-2" name="detective_model_2"
-                                value="gemini:gemini-2.5-flash">
+                                value="gemini:gemini-2.5-flash" list="model-options">
                         </div>
                     </form>
                 </div>
-            </div>
 
-            <div class="actions">
-                <button type="button" id="start-game-btn" class="btn btn-primary">Start Game</button>
-                <button type="button" id="start-fight-btn" class="btn btn-danger hidden">Start Fight</button>
-            </div>
-        </aside>
+                <!-- Council Mode Settings -->
+                <div id="council-mode-settings" class="hidden">
+                    <form id="council-mode-form">
+                        <div class="form-group">
+                            <label for="visionary-model">Visionary Model</label>
+                            <input type="text" id="visionary-model" name="visionary_model"
+                                value="gemini:gemini-2.5-flash" list="model-options">
+                            <small>Creative & Wild</small>
+                        </div>
 
-        <main class="chat-interface">
-            <div class="chat-header">
+                        <div class="form-group">
+                            <label for="skeptic-model">Skeptic Model</label>
+                            <input type="text" id="skeptic-model" name="skeptic_model" value="gemini:gemini-2.5-flash"
+                                list="model-options">
+                            <small>Logical & Critical</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leader-model">Leader Model</label>
+                            <input type="text" id="leader-model" name="leader_model" value="gemini:gemini-2.5-flash"
+                                list="model-options">
+                            <small>Decisive</small>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="divider"></div>
+
                 <div class="header-info">
                     <h2 id="session-title">New Game</h2>
                     <span class="status-badge ready" id="status-badge">Ready</span>
                 </div>
                 <div class="header-actions">
+                    <button type="button" id="start-game-btn" class="btn btn-primary">Start Game</button>
                     <button id="save-btn" class="btn btn-secondary btn-sm" disabled>Save Log</button>
                 </div>
             </div>
+        </aside>
 
+        <main class="chat-interface">
             <div id="chat-container" class="chat-messages">
                 <div class="empty-state">
                     <div class="icon">🕵️‍♂️</div>
