@@ -18,6 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let isFightMode = false;
     let isGameRunning = false;
     let mysteryShown = false; // Track if the mystery has been shown
+    let sessionId = null; // Store the unique session ID
+
+    // Initialize Session ID
+    function initSession() {
+        sessionId = localStorage.getItem('blackstory_session_id');
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            localStorage.setItem('blackstory_session_id', sessionId);
+        }
+        console.log("Session ID:", sessionId);
+    }
+
+    initSession();
 
     // Event Listeners
     fightModeCheckbox.addEventListener('change', toggleFightMode);
@@ -132,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData(gameForm);
         const data = Object.fromEntries(formData.entries());
+        data.session_id = sessionId; // Add session ID
 
         try {
             const response = await fetch('/start_game', {
@@ -192,7 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = {
             ...Object.fromEntries(fightFormData.entries()),
             narrator_model: gameFormData.get('narrator_model'),
-            difficulty: gameFormData.get('difficulty')
+            difficulty: gameFormData.get('difficulty'),
+            session_id: sessionId // Add session ID
         };
 
         try {
@@ -268,7 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save Conversation
     async function saveConversation() {
         try {
-            const response = await fetch('/save_conversation', { method: 'POST' });
+            const response = await fetch('/save_conversation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId }) // Send session ID
+            });
             const result = await response.json();
             if (response.ok) {
                 alert('Conversation saved successfully!');

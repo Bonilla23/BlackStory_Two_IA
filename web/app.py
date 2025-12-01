@@ -12,8 +12,7 @@ from src.game.game_engine import GameEngine
 from src.game.fight_engine import FightEngine # Import FightEngine
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
-game_engine_instance = None # For single player game
-fight_engine_instance = None # For fight mode
+active_games = {} # Dictionary to store game instances by session_id
 
 @app.route('/')
 def index():
@@ -21,19 +20,23 @@ def index():
 
 @app.route('/start_game', methods=['POST'])
 def start_game():
-    global game_engine_instance
     data = request.json
     difficulty = data.get('difficulty')
     narrator_model = data.get('narrator_model')
     detective_model = data.get('detective_model')
+    session_id = data.get('session_id')
+
+    if not session_id:
+        return Response(json.dumps({"type": "error", "content": "Session ID required"}), mimetype='application/x-ndjson')
 
     def generate():
-        global game_engine_instance
         try:
             config_loader = Config(parse_cli=False)
             config = config_loader.get_config()
-            game_engine_instance = GameEngine(config)
-            for line in game_engine_instance.run(difficulty, narrator_model, detective_model):
+            game_engine = GameEngine(config)
+            active_games[session_id] = game_engine # Store instance
+            
+            for line in game_engine.run(difficulty, narrator_model, detective_model):
                 print(f"DEBUG: Yielding line: {line}") # Added for debugging
                 yield line + '\n'
         except Exception as e:
@@ -44,7 +47,6 @@ def start_game():
 
 @app.route('/start_fight', methods=['POST'])
 async def start_fight():
-    global fight_engine_instance
     data = request.json
     # Use the narrator model from the main game form as the default for fight mode
     # If the main form's narrator model is not provided, default to 'gpt-4'
@@ -52,9 +54,12 @@ async def start_fight():
     detective_model_1 = data.get('detective_model_1')
     detective_model_2 = data.get('detective_model_2')
     difficulty = data.get('difficulty') # Get difficulty from frontend
+    session_id = data.get('session_id')
+
+    if not session_id:
+        return Response(json.dumps({"type": "error", "content": "Session ID required"}), mimetype='application/x-ndjson')
 
     def generate_fight_stream_sync():
-        global fight_engine_instance
         
         async def stream_content():
             config_loader = Config(parse_cli=False)
@@ -65,9 +70,11 @@ async def start_fight():
                 config["difficulty"] = difficulty
                 print(f"DEBUG: Fight mode difficulty set to: {difficulty}")
 
-            fight_engine_instance = FightEngine(config)
+            fight_engine = FightEngine(config)
+            active_games[session_id] = fight_engine # Store instance
+
             try:
-                async for line in fight_engine_instance.run(narrator_model, detective_model_1, detective_model_2):
+                async for line in fight_engine.run(narrator_model, detective_model_1, detective_model_2):
                     print(f"DEBUG: Yielding fight line: {line}")
                     yield line + '\n'
             except Exception as e:
@@ -94,14 +101,25 @@ async def start_fight():
 
 @app.route('/save_conversation', methods=['POST'])
 def save_conversation():
-    global game_engine_instance
+    data = request.json
+    session_id = data.get('session_id')
+    
+    if not session_id:
+        return {"status": "error", "message": "Session ID required"}, 400
+
+    game_instance = active_games.get(session_id)
+
     # In fight mode, we don't save individual conversations in the same way, 
     # but the Narrator might have its own save mechanism if needed.
     # For now, this route is mainly for the single-player game.
-    if game_engine_instance:
-        game_engine_instance.save_conversation()
-        return {"status": "success"}, 200
-    return {"status": "error", "message": "Game not started"}, 400
+    if game_instance:
+        if hasattr(game_instance, 'save_conversation'):
+             game_instance.save_conversation()
+             return {"status": "success"}, 200
+        else:
+             return {"status": "error", "message": "Save not supported for this mode"}, 400
+            
+    return {"status": "error", "message": "Game not started for this session"}, 400
 
 
 if __name__ == '__main__':
